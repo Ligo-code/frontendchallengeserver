@@ -1,11 +1,11 @@
 import './App.css';
-import GraphPlaceholder from './components/GraphPlaceholder';
+import FlowGraph from './components/FlowGraph';
 
 function App() {
   return (
     <div className="app-container">
       <h1 style={{ textAlign: 'center' }}>Journey Builder</h1>
-      <GraphPlaceholder />
+      <FlowGraph />
     </div>
   );
 }
