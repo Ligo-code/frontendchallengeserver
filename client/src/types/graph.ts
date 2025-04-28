@@ -1,16 +1,24 @@
-export type NodeData = {
-    label: string;
+export interface GraphNode {
+  id: string;
+  position?: {
+    x: number;
+    y: number;
   };
-  
-  export type FlowNode = {
-    id: string;
-    type?: string;
-    position: { x: number; y: number };
-    data: NodeData;
+  data?: {
+    name?: string;
+    component_type?: string;
+    [key: string]: any;
   };
-  
-  export type FlowEdge = {
-    id: string;
-    source: string;
-    target: string;
-  };
+  type?: string;
+}
+
+export interface GraphEdge {
+  id?: string;
+}
+
+export interface GraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  forms?: any[];
+  branches?: any[];
+}

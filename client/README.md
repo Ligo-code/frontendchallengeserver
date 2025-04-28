@@ -1,54 +1,57 @@
-# React + TypeScript + Vite
+# Journey Builder Graph Visualization
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project implements a visualization for directed acyclic graphs (DAGs) that represent form workflows in Journey Builder. 
 
-Currently, two official plugins are available:
+## Project Goals
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Create an interactive graph visualization of connected forms
+- Allow users to understand the flow of data between forms
+- Provide an intuitive interface for exploring complex form relationships
+- Support easy navigation through the workflow
 
-## Expanding the ESLint configuration
+## Planned Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Graph visualization using React Flow
+- Automatic layout calculation
+- Custom node rendering for different types (forms, branches)
+- Interactive controls for adjusting the view
+- Details panel for examining selected nodes
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## Getting Started
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Prerequisites
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Node.js (v18 or higher)
+- npm or yarn
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+npm install
+3. Start the development server:
+npm run dev
+4. Open http://localhost:5173 in your browser
+
+## Initial Project Structure
+src/
+├── components/    # React components
+├── services/      # API services
+├── types/         # TypeScript type definitions
+└── utils/         # Utility functions
+
+## Technologies
+
+- React 19
+- TypeScript
+- React Flow
+- Vite
+
+## Next Steps
+
+- Set up the basic project structure
+- Implement API service for fetching graph data
+- Create the main graph visualization component
+- Add custom node rendering
+- Implement layout controls
+
