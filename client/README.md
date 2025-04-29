@@ -1,30 +1,16 @@
 # Journey Builder Graph Visualization
 
-This project implements a visualization for directed acyclic graphs (DAGs) that represent form workflows in Journey Builder. 
+This project implements a visualization for directed acyclic graphs (DAGs) representing form flows in Journey Builder. The visualization allows users to see the relationships between different forms and navigate the workflow visually.
 
-## Project Goals
+## Features
 
-- Create an interactive graph visualization of connected forms
-- Allow users to understand the flow of data between forms
-- Provide an intuitive interface for exploring complex form relationships
-- Support easy navigation through the workflow
+- Interactive graph visualization of forms and their connections
+- Automatic layout calculation for optimal node positioning
+- Support for both vertical and horizontal layouts
+- Node selection with detailed information display
+- Clean, responsive design with proper styling
 
-## Planned Features
-
-- Graph visualization using React Flow
-- Automatic layout calculation
-- Custom node rendering for different types (forms, branches)
-- Interactive controls for adjusting the view
-- Details panel for examining selected nodes
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v18 or higher)
-- npm or yarn
-
-### Installation
+## Running Locally
 
 1. Clone the repository
 2. Install dependencies:
@@ -33,25 +19,54 @@ npm install
 npm run dev
 4. Open http://localhost:5173 in your browser
 
-## Initial Project Structure
+## Project Structure
 src/
-├── components/    # React components
-├── services/      # API services
-├── types/         # TypeScript type definitions
-└── utils/         # Utility functions
+├── components/       # React components
+│   ├── nodes/        # Custom node components
+│   │   ├── FormNode.tsx
+│   │   └── BranchNode.tsx
+│   ├── FlowGraph.tsx # Main graph component
+│   └── NodeDetails.tsx
+├── services/         # API services
+│   └── api.ts
+├── types/            # TypeScript type definitions
+│   └── graph.ts
+├── utils/            # Utility functions
+│   └── layoutUtils.ts
+└── App.tsx           # Main application component
 
-## Technologies
 
-- React 19
-- TypeScript
-- React Flow
-- Vite
+## Extending with New Data Sources
 
-## Next Steps
+To add a new data source:
 
-- Set up the basic project structure
-- Implement API service for fetching graph data
-- Create the main graph visualization component
-- Add custom node rendering
-- Implement layout controls
+1. Define the data structure in `src/types/graph.ts`
+2. Create a new service function in `src/services/api.ts`
+3. Update the `FlowGraph` component to use the new data source
 
+Example of adding a new data source:
+
+```typescript
+// In api.ts
+export const fetchAlternativeGraph = async (): Promise<GraphData> => {
+  // Implementation here
+};
+
+// In FlowGraph.tsx
+// Update useEffect to use the new data source
+useEffect(() => {
+  const loadData = async () => {
+    const data = await fetchAlternativeGraph();
+    // Process data...
+  };
+  loadData();
+}, []);
+
+
+Technologies Used
+
+React 19
+TypeScript
+React Flow
+Dagre (for automatic graph layout)
+Vite (for build and development)
