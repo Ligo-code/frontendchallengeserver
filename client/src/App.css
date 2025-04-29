@@ -60,5 +60,19 @@ body, html {
   text-align: center;
 }
 
+.graph-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.react-flow-container {
+  width: 100%;
+  max-width: 1200px;
+  height: 600px;
+  background-color: #f8f8fc;
+  border-radius: 8px;
+}
 
 

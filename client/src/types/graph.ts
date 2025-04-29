@@ -14,6 +14,8 @@ export interface GraphNode {
 
 export interface GraphEdge {
   id?: string;
+  source: string;  
+  target: string;
 }
 
 export interface GraphData {

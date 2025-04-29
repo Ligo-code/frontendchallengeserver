@@ -18,7 +18,7 @@ const NodeDetails: React.FC<NodeDetailsProps> = ({ node, onClose }) => {
         background: "white",
         padding: "15px",
         borderRadius: "8px",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+        boxShadow: "0 2px 10px rgba(0,0,0,0)",
         width: "300px",
         zIndex: 999,
       }}
