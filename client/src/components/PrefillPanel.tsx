@@ -5,8 +5,10 @@ import {
   PrefillConfig,
   FormType,
   FieldType,
+  DataSourceField,
 } from "../types/prefill";
 import { fetchFormFields, fetchAvailableForms } from "../services/api";
+import DataSourceModal from "./nodes/DataSourceModal";
 
 interface PrefillPanelProps {
   node: Node | null;
@@ -20,12 +22,14 @@ const PrefillPanel: React.FC<PrefillPanelProps> = ({
   onSave,
 }) => {
   const [enabled, setEnabled] = useState(false);
-  const [formFields, setFormFields] = useState<any[]>([]);
-  const [availableForms, setAvailableForms] = useState<any[]>([]);
-  const [selectedField, setSelectedField] = useState<string | null>(null);
-  const [selectedForm, setSelectedForm] = useState<string | null>(null);
+  const [formFields, setFormFields] = useState<FieldType[]>([]);
+  const [availableForms, setAvailableForms] = useState<FormType[]>([]);
+  const [selectedTargetField, setSelectedTargetField] = useState<string | null>(
+    null
+  );
   const [mappings, setMappings] = useState<PrefillMapping[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [showDataSourceModal, setShowDataSourceModal] =
+    useState<boolean>(false);
 
   useEffect(() => {
     // loading form fields
@@ -55,36 +59,47 @@ const PrefillPanel: React.FC<PrefillPanelProps> = ({
 
   if (!node) return null;
 
-  const handleAddMapping = (
-    targetFieldId: string,
-    sourceFormId: string,
-    sourceFieldId: string
-  ) => {
-    // Проверяем, есть ли уже маппинг для этого поля
-    const existingIndex = mappings.findIndex(
-      (m) => m.targetFieldId === targetFieldId
-    );
+  const handleMapField = (fieldId: string) => {
+    setSelectedTargetField(fieldId);
+    setShowDataSourceModal(true);
+  };
 
-    if (existingIndex >= 0) {
-      // Обновляем существующий маппинг
-      const newMappings = [...mappings];
-      newMappings[existingIndex] = {
-        targetFieldId,
-        sourceFormId,
-        sourceFieldId,
+  const handleSourceFieldSelected = (sourceField: DataSourceField) => {
+    if (selectedTargetField) {
+      // Extract source type from path
+      const pathParts = sourceField.path.split(".");
+      const sourceType =
+        pathParts[0] === "form"
+          ? "form"
+          : pathParts[0] === "action"
+          ? "action"
+          : pathParts[0] === "client"
+          ? "client"
+          : "other";
+
+      // Create new mapping
+      const newMapping: PrefillMapping = {
+        targetFieldId: selectedTargetField,
+        sourceType,
+        sourcePath: sourceField.path,
       };
-      setMappings(newMappings);
-    } else {
-      // new mapping
-      setMappings([
-        ...mappings,
-        { targetFieldId, sourceFormId, sourceFieldId },
-      ]);
+
+      // Update mappings list
+      const existingIndex = mappings.findIndex(
+        (m) => m.targetFieldId === selectedTargetField
+      );
+
+      if (existingIndex >= 0) {
+        const newMappings = [...mappings];
+        newMappings[existingIndex] = newMapping;
+        setMappings(newMappings);
+      } else {
+        setMappings([...mappings, newMapping]);
+      }
     }
 
-    setSelectedField(null);
-    setSelectedForm(null);
-    setShowDropdown(false);
+    setShowDataSourceModal(false);
+    setSelectedTargetField(null);
   };
 
   const handleRemoveMapping = (fieldId: string) => {
@@ -101,17 +116,37 @@ const PrefillPanel: React.FC<PrefillPanelProps> = ({
     );
     if (!mapping) return null;
 
-    const sourceForm = availableForms.find(
-      (form: FormType) => form.id === mapping.sourceFormId
-    );
+    // For form sources
+    if (mapping.sourceType === "form") {
+      const pathParts = mapping.sourcePath.split(".");
+      if (pathParts.length >= 2) {
+        const formId = pathParts[0];
+        const fieldId = pathParts[1];
 
-    const sourceField = sourceForm?.fields?.find(
-      (field: FieldType) => field.id === mapping.sourceFieldId
-    );
+        const sourceForm = availableForms.find(
+          (form: FormType) => form.id === formId
+        );
 
-    return sourceForm && sourceField
-      ? `${sourceForm.name} > ${sourceField.name}`
-      : null;
+        const sourceField = sourceForm?.fields?.find(
+          (field: FieldType) => field.id === fieldId
+        );
+
+        return sourceForm && sourceField
+          ? `${sourceForm.name} > ${sourceField.name}`
+          : null;
+      }
+    }
+
+    // For other source types
+    if (mapping.sourceType === "action") {
+      return `Action > ${mapping.sourcePath.split(".")[1]}`;
+    }
+
+    if (mapping.sourceType === "client") {
+      return `Client > ${mapping.sourcePath.split(".")[1]}`;
+    }
+
+    return mapping.sourcePath;
   };
 
   const handleSave = () => {
@@ -174,6 +209,9 @@ const PrefillPanel: React.FC<PrefillPanelProps> = ({
       {enabled && (
         <div>
           <h3>Available fields to prefill</h3>
+          <div style={{ marginBottom: "10px", color: "#667" }}>
+            Debug: {formFields.length} fields loaded
+          </div>
 
           {formFields.map((field) => (
             <div
@@ -212,10 +250,7 @@ const PrefillPanel: React.FC<PrefillPanelProps> = ({
                   </button>
                 ) : (
                   <button
-                    onClick={() => {
-                      setSelectedField(field.id);
-                      setShowDropdown(true);
-                    }}
+                    onClick={() => handleMapField(field.id)}
                     style={{
                       padding: "5px 10px",
                       background: "#4285f4",
@@ -243,71 +278,6 @@ const PrefillPanel: React.FC<PrefillPanelProps> = ({
                   Mapped from: {getMappingInfo(field.id)}
                 </div>
               )}
-
-              {selectedField === field.id && showDropdown && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    left: "0",
-                    width: "100%",
-                    background: "white",
-                    borderRadius: "4px",
-                    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                    zIndex: 1000,
-                    marginTop: "5px",
-                  }}
-                >
-                  <div
-                    style={{ padding: "10px", borderBottom: "1px solid #eee" }}
-                  >
-                    <strong>Select source form</strong>
-                  </div>
-
-                  {availableForms.map((form) => (
-                    <div
-                      key={form.id}
-                      style={{
-                        padding: "10px",
-                        cursor: "pointer",
-                        borderBottom: "1px solid #eee",
-                        backgroundColor:
-                          selectedForm === form.id ? "#f5f5f5" : "white",
-                      }}
-                      onClick={() => setSelectedForm(form.id)}
-                    >
-                      {form.name}
-
-                      {selectedForm === form.id && form.fields && (
-                        <div style={{ marginTop: "10px", marginLeft: "15px" }}>
-                          {form.fields.map((sourceField: any) => (
-                            <div
-                              key={sourceField.id}
-                              style={{
-                                padding: "8px",
-                                cursor: "pointer",
-                                backgroundColor: "#f9f9f9",
-                                margin: "5px 0",
-                                borderRadius: "4px",
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAddMapping(
-                                  field.id,
-                                  form.id,
-                                  sourceField.id
-                                );
-                              }}
-                            >
-                              {sourceField.name}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           ))}
 
@@ -328,6 +298,14 @@ const PrefillPanel: React.FC<PrefillPanelProps> = ({
             </button>
           </div>
         </div>
+      )}
+
+      {showDataSourceModal && selectedTargetField && (
+        <DataSourceModal
+          formId={node.id}
+          onSelect={handleSourceFieldSelected}
+          onCancel={() => setShowDataSourceModal(false)}
+        />
       )}
     </div>
   );
