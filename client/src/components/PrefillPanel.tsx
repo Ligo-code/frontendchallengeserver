@@ -126,13 +126,13 @@ const PrefillPanel: React.FC<PrefillPanelProps> = ({
     <div
       style={{
         position: "absolute",
-        right: "20px",
+        left: "20px",
         top: "20px",
         background: "white",
         padding: "20px",
         borderRadius: "8px",
         boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-        width: "400px",
+        width: "300px",
         zIndex: 999,
       }}
     >
