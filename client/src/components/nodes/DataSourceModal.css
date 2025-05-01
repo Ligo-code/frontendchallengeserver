@@ -1,0 +1,176 @@
+.data-source-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background-color: #fff;
+    border-radius: 4px;
+    width: 450px;
+    max-height: 600px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .modal-header {
+    padding: 16px 20px;
+    font-size: 18px;
+    color: #333;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .modal-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  
+  .available-data {
+    padding: 16px 20px 10px;
+    font-weight: 500;
+    color: #333;
+    text-align: center;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .search-container {
+    padding: 10px 16px;
+    position: relative;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .search-container input {
+    width: 100%;
+    padding: 8px 8px 8px 35px; /* Increased left padding to avoid overlap */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 26px; /* Adjust icon position */
+    top: 18px;
+    color: #999;
+  }
+  
+  .sources-container {
+    overflow-y: auto;
+    max-height: 350px; /* Reduced to ensure buttons are visible */
+  }
+  
+  .group-header {
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: #333;
+    background-color: #e3f2fd;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .group-header:hover {
+    background-color: #d0e8f7;
+  }
+  
+  .expand-icon {
+    margin-right: 8px;
+    font-size: 10px;
+    width: 12px;
+    color: #666;
+  }
+  
+  .group-content {
+    background-color: #fff;
+  }
+  
+  /* Add indentation for child items in a group */
+  .child-group {
+    padding-left: 20px; /* Indent child groups */
+  }
+  
+  .field-item {
+    padding: 12px 16px 12px 46px; /* Increased left padding for better indentation */
+    cursor: pointer;
+    color: #333;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .field-item:hover {
+    background-color: #f5f5f5;
+  }
+  
+  /* Style for selected field */
+  .field-item.selected {
+    background-color: #e1f5fe;
+    font-weight: 500;
+  }
+  
+  .modal-footer {
+    padding: 12px 16px;
+    text-align: right;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    background-color: #fff;
+    position: sticky; /* Make footer sticky to ensure it's always visible */
+    bottom: 0;
+  }
+  
+  .cancel-button {
+    padding: 8px 16px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+  
+  .select-button {
+    padding: 8px 16px;
+    background-color: #e0e0e0;
+    color: #333;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+  
+  .select-button:disabled {
+    background-color: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+  }
+  
+  .cancel-button:hover {
+    background-color: #d32f2f;
+  }
+  
+  .select-button:hover:not(:disabled) {
+    background-color: #d5d5d5;
+  }
+  
+  .loading, .no-results {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+  }

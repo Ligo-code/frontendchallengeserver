@@ -7,7 +7,7 @@ import {
   FieldType,
   DataSourceField,
 } from "../types/prefill";
-import { fetchFormFields, fetchAvailableForms } from "../services/api";
+import { fetchFormFields, fetchAvailableForms, fetchPrefillConfig} from "../services/api";
 import DataSourceModal from "./nodes/DataSourceModal";
 
 interface PrefillPanelProps {
@@ -53,8 +53,23 @@ const PrefillPanel: React.FC<PrefillPanelProps> = ({
       }
     };
 
+    const loadPrefillConfig = async () => {
+      if (node) {
+        try {
+          const config = await fetchPrefillConfig(node.id);
+          if (config) {
+            setEnabled(config.enabled);
+            setMappings(config.mappings);
+          }
+        } catch (error) {
+          console.error("Error loading prefill config:", error);
+        }
+      }
+    };
+
     loadFields();
     loadForms();
+    loadPrefillConfig();
   }, [node]);
 
   if (!node) return null;
@@ -115,37 +130,43 @@ const PrefillPanel: React.FC<PrefillPanelProps> = ({
       (mapping: PrefillMapping) => mapping.targetFieldId === fieldId
     );
     if (!mapping) return null;
-
+  
     // For form sources
     if (mapping.sourceType === "form") {
       const pathParts = mapping.sourcePath.split(".");
       if (pathParts.length >= 2) {
         const formId = pathParts[0];
         const fieldId = pathParts[1];
-
+  
+        // If it's a full form ID with UUID format, display it as is
+        if (formId.includes("-")) {
+          return `${formId}.${fieldId}`;
+        }
+  
+        // Otherwise try to get the form name
         const sourceForm = availableForms.find(
           (form: FormType) => form.id === formId
         );
-
+  
         const sourceField = sourceForm?.fields?.find(
           (field: FieldType) => field.id === fieldId
         );
-
+  
         return sourceForm && sourceField
           ? `${sourceForm.name} > ${sourceField.name}`
           : null;
       }
     }
-
+  
     // For other source types
     if (mapping.sourceType === "action") {
       return `Action > ${mapping.sourcePath.split(".")[1]}`;
     }
-
+  
     if (mapping.sourceType === "client") {
       return `Client > ${mapping.sourcePath.split(".")[1]}`;
     }
-
+  
     return mapping.sourcePath;
   };
 

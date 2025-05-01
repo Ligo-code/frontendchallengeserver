@@ -162,6 +162,12 @@ export const savePrefillConfig = async (config: PrefillConfig): Promise<{success
     await new Promise(resolve => setTimeout(resolve, 300));
     console.log(`Saved prefill config for form ${config.formId}:`, config);
     
+    // Save the config to the in-memory storage
+    if (!window.prefillConfigs) {
+      window.prefillConfigs = {};
+    }
+    window.prefillConfigs[config.formId] = config;
+    
     return { success: true };
     
     /* Production implementation
@@ -183,11 +189,14 @@ export const fetchPrefillConfig = async (formId: string): Promise<PrefillConfig 
     // In production, uncomment the axios code
     
     // Mock implementation
-    await new Promise(resolve => setTimeout(resolve, 300));
-    console.log(`Fetching prefill config for form: ${formId}`);
+    // Create a simple in-memory storage for prefill configs
+    // This should be a more persistent storage in a real app
+    if (!window.prefillConfigs) {
+      window.prefillConfigs = {};
+    }
     
-    // Return null to simulate no existing config
-    return null;
+    // Return the saved config if it exists
+    return window.prefillConfigs[formId] || null;
     
     /* Production implementation
     const { TENANT_ID, BLUEPRINT_ID, BASE_URL } = API_CONFIG;

@@ -35,7 +35,10 @@ export const getTransitiveDependencies = (graph: GraphData, formId: string): str
         
         const directDeps = getDirectDependencies(graph, currentId);
         for (const depId of directDeps) {
-          result.push(depId);
+          // Only add if not already in result
+          if (!result.includes(depId)) {
+            result.push(depId);
+          }
           traverse(depId);
         }
       };
@@ -48,7 +51,8 @@ export const getTransitiveDependencies = (graph: GraphData, formId: string): str
         return ['form-d', 'form-e'];
       }
       
-      return result;
+      // Return unique values
+      return [...new Set(result)];
     } catch (error) {
       console.log('Error in getTransitiveDependencies, using mock data');
       return ['form-d', 'form-e'];
