@@ -1,54 +1,72 @@
-# React + TypeScript + Vite
+# Journey Builder Graph Visualization
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project implements a visualization for directed acyclic graphs (DAGs) representing form flows in Journey Builder. The visualization allows users to see the relationships between different forms and navigate the workflow visually.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Interactive graph visualization of forms and their connections
+- Automatic layout calculation for optimal node positioning
+- Support for both vertical and horizontal layouts
+- Node selection with detailed information display
+- Clean, responsive design with proper styling
 
-## Expanding the ESLint configuration
+## Running Locally
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. Clone the repository
+2. Install dependencies:
+npm install
+3. Start the development server:
+npm run dev
+4. Open http://localhost:5173 in your browser
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## Project Structure
+src/
+├── components/       # React components
+│   ├── nodes/        # Custom node components
+│   │   ├── FormNode.tsx
+│   │   └── BranchNode.tsx
+│   ├── FlowGraph.tsx # Main graph component
+│   └── NodeDetails.tsx
+├── services/         # API services
+│   └── api.ts
+├── types/            # TypeScript type definitions
+│   └── graph.ts
+├── utils/            # Utility functions
+│   └── layoutUtils.ts
+└── App.tsx           # Main application component
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Extending with New Data Sources
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+To add a new data source:
+
+1. Define the data structure in `src/types/graph.ts`
+2. Create a new service function in `src/services/api.ts`
+3. Update the `FlowGraph` component to use the new data source
+
+Example of adding a new data source:
+
+```typescript
+// In api.ts
+export const fetchAlternativeGraph = async (): Promise<GraphData> => {
+  // Implementation here
+};
+
+// In FlowGraph.tsx
+// Update useEffect to use the new data source
+useEffect(() => {
+  const loadData = async () => {
+    const data = await fetchAlternativeGraph();
+    // Process data...
+  };
+  loadData();
+}, []);
+
+
+Technologies Used
+
+React 19
+TypeScript
+React Flow
+Dagre (for automatic graph layout)
+Vite (for build and development)
