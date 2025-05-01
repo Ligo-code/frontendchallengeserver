@@ -10,19 +10,21 @@ import ReactFlow, {
   Panel
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { fetchGraph } from '../services/api';
+import { fetchGraph, savePrefillConfig } from '../services/api';
 import { getLayoutedElements } from '../utils/layoutUtils';
 import FormNode from './nodes/FormNode';
 import BranchNode from './nodes/BranchNode';
 import NodeDetails from './NodeDetails';
-
-// Define node types outside the component to avoid React warnings
-const nodeTypes = {
-  form: FormNode,
-  branch: BranchNode,
-  };
+import PrefillPanel from './PrefillPanel';
+import { PrefillConfig } from '../types/prefill';
+import { ErrorBoundary } from 'react-error-boundary';
 
 const FlowGraph: React.FC = () => {
+// Define node types outside the component to avoid React warnings
+  const nodeTypes = useMemo(() => ({
+    form: FormNode,
+    branch: BranchNode,
+  }), []);
   // State for graph data
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -32,6 +34,10 @@ const FlowGraph: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR'>('TB');
+
+  // Prefill state
+  const [showPrefillPanel, setShowPrefillPanel] = useState<boolean>(false);
+  const [prefillConfigs, setPrefillConfigs] = useState<PrefillConfig[]>([]);
 
   // Container styles
   const containerStyle: React.CSSProperties = {
@@ -59,15 +65,32 @@ const FlowGraph: React.FC = () => {
   }, [layoutDirection]);
 
   /**
-   * Determines node color based on type
+   * Determines node color based on type and prefill status
    */
-  const getNodeColor = useCallback((type?: string): string => {
-    switch(type) {
-      case 'form': return '#e6f7ff';
-      case 'branch': return '#fff7e6';
-      default: return '#f9f9f9';
+  const getNodeColor = useCallback((type?: string, nodeId?: string): string => {
+    if (!nodeId || !prefillConfigs.length) {
+      switch(type) {
+        case 'form': return '#e6f7ff';
+        case 'branch': return '#fff7e6';
+        default: return '#f9f9f9';
+      }
     }
-  }, []);
+    
+    // Check if the node has prefill configuration
+    const hasPrefill = prefillConfigs.some(config => 
+      config.formId === nodeId && config.enabled
+    );
+    
+    // Apply color based on type and prefill status
+    switch(type) {
+      case 'form': 
+        return hasPrefill ? '#e1f5fe' : '#e6f7ff'; // Slightly different shade for prefill forms
+      case 'branch': 
+        return '#fff7e6';
+      default: 
+        return '#f9f9f9';
+    }
+  }, [prefillConfigs]);
 
   /**
    * Load graph data on component mount
@@ -100,14 +123,15 @@ const FlowGraph: React.FC = () => {
               data: { 
                 label: node.data?.name || `Node ${index + 1}`,
                 type: nodeType,
-                originalData: node.data
+                originalData: node.data,
+                hasPrefill: false // Will be updated when prefill configs are loaded
               },
               position: node.position || { 
                 x: (index % 3) * 250, 
                 y: Math.floor(index / 3) * 200 
               },
               style: {
-                background: getNodeColor(nodeType),
+                background: getNodeColor(nodeType, node.id),
                 border: '1px solid #777',
                 borderRadius: '8px',
                 padding: '10px'
@@ -144,11 +168,51 @@ const FlowGraph: React.FC = () => {
   }, [applyLayout, getNodeColor]);
 
   /**
+   * Update node styles when prefill configs change
+   */
+  useEffect(() => {
+    if (!nodes.length || !prefillConfigs.length) return;  
+    
+    let hasChanges = false;
+    const updatedNodes = nodes.map(node => {
+      const hasPrefill = prefillConfigs.some(
+        config => config.formId === node.id && config.enabled
+      );
+        // Only update if the prefill status changed
+        if (node.data.hasPrefill !== hasPrefill) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              hasPrefill
+            },
+            style: {
+              ...node.style,
+              background: getNodeColor(node.type, node.id)
+            }
+          };
+          hasChanges = true;
+        }
+        return node;
+      });
+
+
+  if (hasChanges) {
+    setNodes(updatedNodes);
+    }
+  }, [prefillConfigs]);
+
+  /**
    * Handle node click event
    */
   const onNodeClick: NodeMouseHandler = (_event, node) => {
     console.log('Selected node:', node);
     setSelectedNode(node);
+    
+    // Show prefill panel for form nodes
+    if (node.type === 'form') {
+      setShowPrefillPanel(true);
+    }
   };
 
   /**
@@ -157,6 +221,42 @@ const FlowGraph: React.FC = () => {
   const closeDetails = useCallback(() => {
     setSelectedNode(null);
   }, []);
+
+  /**
+   * Close the prefill panel
+   */
+  const closePrefillPanel = useCallback(() => {
+    setShowPrefillPanel(false);
+  }, []);
+
+  /**
+   * Handle saving prefill configuration
+   */
+  const handleSavePrefill = useCallback(async (config: PrefillConfig) => {
+    try {
+      // Save via API
+      await savePrefillConfig(config);
+      
+      // Update local state
+      const existingIndex = prefillConfigs.findIndex(c => c.formId === config.formId);
+      
+      if (existingIndex >= 0) {
+        // Update existing config
+        const newConfigs = [...prefillConfigs];
+        newConfigs[existingIndex] = config;
+        setPrefillConfigs(newConfigs);
+      } else {
+        // Add new config
+        setPrefillConfigs([...prefillConfigs, config]);
+      }
+      
+      setShowPrefillPanel(false);
+      
+      console.log('Prefill configuration saved successfully:', config);
+    } catch (error) {
+      console.error('Error saving prefill configuration:', error);
+    }
+  }, [prefillConfigs]);
 
   const defaultEdgeOptions = useMemo(() => ({
     animated: true,
@@ -202,6 +302,7 @@ const FlowGraph: React.FC = () => {
     <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
       <div style={containerStyle}>
         <ReactFlowProvider>
+        <ErrorBoundary fallback={<div>Something went wrong with the flow graph.</div>}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -252,9 +353,20 @@ const FlowGraph: React.FC = () => {
               </div>
             </Panel>
           </ReactFlow>
+          </ErrorBoundary>
           
+          {/* Node details panel */}
           <NodeDetails node={selectedNode} onClose={closeDetails} />
-        </ReactFlowProvider>
+          
+          {/* Prefill panel */}
+          {showPrefillPanel && selectedNode && (
+            <PrefillPanel
+              node={selectedNode}
+              onClose={closePrefillPanel}
+              onSave={handleSavePrefill}
+            />
+          )}
+        </ReactFlowProvider>        
       </div>
     </div>
   );
